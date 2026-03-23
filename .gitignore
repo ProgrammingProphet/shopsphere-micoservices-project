@@ -1,0 +1,105 @@
+# ===========================
+# Java / Maven
+# ===========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/
+mvnw
+mvnw.cmd
+
+# ===========================
+# Node.js / npm
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+build/
+*.tgz
+
+# ===========================
+# IDEs
+# ===========================
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+*~
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===========================
+# Environment Variables
+# ===========================
+.env
+.env.local
+.env.*.local
+
+# ===========================
+# Logs
+# ===========================
+logs/
+*.log
+
+# ===========================
+# Test Results
+# ===========================
+test-output/
+surefire-reports/
+junit.xml
+
+# ===========================
+# Docker
+# ===========================
+*.dockerignore
+
+# ===========================
+# Kubernetes / Kustomize
+# ===========================
+*.kubeconfig
+
+# ===========================
+# Terraform
+# ===========================
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.*
+
+# ===========================
+# Misc
+# ===========================
+*.bak
+*.tmp
+*.temp
+
+
+monitoring/
+logs/
+docs
+init-scripts/
+scripts/
+Makefile
+kubernetes/
+.github/
+terraform/
