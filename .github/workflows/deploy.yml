@@ -42,7 +42,6 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
 
-
       # 5️⃣ Build + Push (Product)
       - name: Build & Push Product Service
         if: steps.changes.outputs.product == 'true'
@@ -70,7 +69,6 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
 
-
       # 7️⃣ Deploy to Azure VM 🚀
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
@@ -83,17 +81,15 @@ jobs:
             cd ~/shopsphere-microservices-project
 
             echo "Creating .env file on server..."
-
-            cat <<EOF > .env
-POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
-SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
-SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_EMAIL }}
-PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_PASSWORD }}
-EOF
+            > .env
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
+            echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
+            echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
+            echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_EMAIL }}" >> .env
+            echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_PASSWORD }}" >> .env
 
             echo "Pulling latest images..."
             docker-compose pull 
@@ -123,7 +119,7 @@ EOF
           curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/actuator/health
           curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/actuator/health
           curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health
-        
+
         # for i in {1..5}; do
         # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
         # sleep 5
