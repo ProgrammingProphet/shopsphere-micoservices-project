@@ -22,9 +22,9 @@ EXPOSE 8080
 # ENTRYPOINT ["java", "-Xms128m", "-Xmx256m", "-jar", "app.jar"]
 
 # Use JAVA_OPTS dynamically
-# ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:-'-Xms128m -Xmx256m'} -jar app.jar"]  #If env missing → still safe
+# ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:-'-Xms128m -Xmx256m'} -jar app.jar"]  #If env missing → still safe
 
 
 # I use multi-stage builds, minimal base images, and run containers as non-root users with configurable runtime parameters.
