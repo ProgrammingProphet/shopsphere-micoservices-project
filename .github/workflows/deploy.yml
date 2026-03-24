@@ -113,33 +113,33 @@ jobs:
             fi
 
       # 8️⃣ Health Check 🔥
-      - name: Health Check
-        run: |
-          sleep 25
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health
+      # - name: Health Check
+      #   run: |
+      #     sleep 25
+      #     curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/actuator/health
+      #     curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/actuator/health
+      #     curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health
 
-        # for i in {1..5}; do
-        # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
-        # sleep 5
-        # done
-        # curl -f http://localhost:8080/api/orders/actuator/health
+      # for i in {1..5}; do
+      # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
+      # sleep 5
+      # done
+      # curl -f http://localhost:8080/api/orders/actuator/health
 
       # 9️⃣ Rollback ❌
-      - name: Rollback on Failure
-        if: failure()
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd ~/shopsphere-microservices-project
-            echo "Rollback triggered..."
-            docker-compose down
-            docker-compose up -d
-          # docker-compose up -d --no-deps --build
+      # - name: Rollback on Failure
+      #   if: failure()
+      #   uses: appleboy/ssh-action@v0.1.10
+      #   with:
+      #     host: ${{ secrets.VM_HOST }}
+      #     username: ${{ secrets.VM_USER }}
+      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     script: |
+      #       cd ~/shopsphere-microservices-project
+      #       echo "Rollback triggered..."
+      #       docker-compose down
+      #       docker-compose up -d
+      # docker-compose up -d --no-deps --build
 
       # 🔟 Success
       - name: Deployment Success ✅
