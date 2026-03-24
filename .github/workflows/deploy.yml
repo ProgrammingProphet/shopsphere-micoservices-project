@@ -112,6 +112,8 @@ jobs:
               docker-compose up -d --no-deps frontend
             fi
 
+            docker-compose up -d --no-deps nginx-gateway
+
       # 8️⃣ Health Check 🔥
       - name: Health Check
         run: |
@@ -127,19 +129,19 @@ jobs:
         # curl -f http://localhost:8080/api/orders/actuator/health
 
       # 9️⃣ Rollback ❌
-      - name: Rollback on Failure
-        if: failure()
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd ~/shopsphere-microservices-project
-            echo "Rollback triggered..."
-            docker-compose down
-            docker-compose up -d
-          # docker-compose up -d --no-deps --build
+      # - name: Rollback on Failure
+      #   if: failure()
+      #   uses: appleboy/ssh-action@v0.1.10
+      #   with:
+      #     host: ${{ secrets.VM_HOST }}
+      #     username: ${{ secrets.VM_USER }}
+      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     script: |
+      #       cd ~/shopsphere-microservices-project
+      #       echo "Rollback triggered..."
+      #       docker-compose down
+      #       docker-compose up -d
+      # docker-compose up -d --no-deps --build
 
       # 🔟 Success
       - name: Deployment Success ✅
