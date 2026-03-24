@@ -50,14 +50,14 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest ./product-service
           docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:v1.0.${{ github.run_number }}
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:v1.0.${{ github.run_number }}
 
       # 6️⃣ Build + Push (Order)
       - name: Build & Push Order Service
         if: steps.changes.outputs.order == 'true'
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest ./order-service
-          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
 
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
@@ -101,19 +101,19 @@ EOF
             echo "Restarting services..."
 
             if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
-              docker-compose up -d user-service
+              docker-compose up -d --no-deps user-service
             fi
 
             if [ "${{ steps.changes.outputs.product }}" == "true" ]; then
-              docker-compose up -d product-service
+              docker-compose up -d --no-deps product-service
             fi
 
             if [ "${{ steps.changes.outputs.order }}" == "true" ]; then
-              docker-compose up -d order-service
+              docker-compose up -d --no-deps order-service
             fi
 
             if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
-              docker-compose up -d  frontend
+              docker-compose up -d --no-deps frontend
             fi
 
       # 8️⃣ Health Check 🔥
