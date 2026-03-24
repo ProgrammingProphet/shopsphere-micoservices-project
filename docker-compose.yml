@@ -29,8 +29,8 @@ services:
     restart: unless-stopped
 
   user-service:
-    # build: ./user-service
-    # container_name: user-service
+    build: ./user-service
+    container_name: user-service
     image: programmingprobhet/shopsphere-user:latest
     # deploy:
     #   resources:
@@ -62,8 +62,8 @@ services:
       - ./logs/user-service:/app/logs
 
   product-service:
-    # build: ./product-service
-    # container_name: product-service
+    build: ./product-service
+    container_name: product-service
     image: programmingprobhet/shopsphere-product:latest
     # deploy:
     #   resources:
@@ -95,8 +95,8 @@ services:
       - ./logs/product-service:/app/logs
 
   order-service:
-    # build: ./order-service
-    # container_name: order-service
+    build: ./order-service
+    container_name: order-service
     image: programmingprobhet/shopsphere-order:latest
     # deploy:
     #   resources:
@@ -154,8 +154,8 @@ services:
     restart: unless-stopped
 
   frontend:
-    # build: ./frontend
-    # container_name: shopsphere-frontend
+    build: ./frontend
+    container_name: shopsphere-frontend
     image: programmingprobhet/shopsphere-frontend:latest
 
     mem_reservation: 128m
