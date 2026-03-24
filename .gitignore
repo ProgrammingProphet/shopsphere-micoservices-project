@@ -105,3 +105,8 @@ kubernetes/
 terraform/
 
 Jenkinsfile
+
+usefull.txt
+
+.gitignore
+.dockerignore   
