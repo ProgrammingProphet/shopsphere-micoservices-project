@@ -78,7 +78,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
 
-            cd ~/shopsphere-microservices-project
+            cd ~/DevOps/shopsphere-micoservices-project
 
             echo "Creating .env file on server..."
             > .env
