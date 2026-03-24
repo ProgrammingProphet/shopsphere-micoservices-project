@@ -40,3 +40,5 @@ This service relies on a running PostgreSQL database. Production and local deplo
 mvn clean package
 java -jar target/product-service-0.0.1-SNAPSHOT.jar
 ```
+
+Update

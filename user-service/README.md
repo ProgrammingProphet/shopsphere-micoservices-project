@@ -39,3 +39,5 @@ To run this service individually (assuming PostgreSQL is available at `localhost
 mvn clean package
 java -jar target/user-service-0.0.1-SNAPSHOT.jar
 ```
+
+Update
