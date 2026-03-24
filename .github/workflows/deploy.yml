@@ -1,0 +1,150 @@
+name: ShopSphere Smart CI/CD 🚀
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  smart-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Detect Changes 🔥
+      - name: Detect Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            user:
+              - 'user-service/**'
+            product:
+              - 'product-service/**'
+            order:
+              - 'order-service/**'
+            frontend:
+              - 'frontend/**'
+
+      # 3️⃣ Docker Login
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # 4️⃣ Build + Push (User)
+      - name: Build & Push User Service
+        if: steps.changes.outputs.user == 'true'
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest ./user-service
+          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
+
+
+      # 5️⃣ Build + Push (Product)
+      - name: Build & Push Product Service
+        if: steps.changes.outputs.product == 'true'
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest ./product-service
+          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:v1.0.${{ github.run_number }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
+
+      # 6️⃣ Build + Push (Order)
+      - name: Build & Push Order Service
+        if: steps.changes.outputs.order == 'true'
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest ./order-service
+          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
+
+      - name: Build & Push Frontend
+        if: steps.changes.outputs.frontend == 'true'
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest ./frontend
+          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
+
+
+      # 7️⃣ Deploy to Azure VM 🚀
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+
+            cd ~/shopsphere-microservices-project
+
+            echo "Creating .env file on server..."
+
+            cat <<EOF > .env
+POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_EMAIL }}
+PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_PASSWORD }}
+EOF
+
+            echo "Pulling latest images..."
+            docker-compose pull 
+
+            echo "Restarting services..."
+
+            if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
+              docker-compose up -d user-service
+            fi
+
+            if [ "${{ steps.changes.outputs.product }}" == "true" ]; then
+              docker-compose up -d product-service
+            fi
+
+            if [ "${{ steps.changes.outputs.order }}" == "true" ]; then
+              docker-compose up -d order-service
+            fi
+
+            if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
+              docker-compose up -d  frontend
+            fi
+
+      # 8️⃣ Health Check 🔥
+      - name: Health Check
+        run: |
+          sleep 25
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/actuator/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/actuator/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health
+        
+        # for i in {1..5}; do
+        # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
+        # sleep 5
+        # done
+        # curl -f http://localhost:8080/api/orders/actuator/health
+
+      # 9️⃣ Rollback ❌
+      - name: Rollback on Failure
+        if: failure()
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            echo "Rollback triggered..."
+            docker-compose down
+            docker-compose up -d
+          # docker-compose up -d --no-deps --build
+
+      # 🔟 Success
+      - name: Deployment Success ✅
+        if: success()
+        run: echo "Deployment successful - Version v1.0.${{ github.run_number }}"

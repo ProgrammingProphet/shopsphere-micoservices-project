@@ -101,7 +101,7 @@ init-scripts/
 scripts/
 Makefile
 kubernetes/
-.github/
+# .github/
 terraform/
 
 Jenkinsfile
