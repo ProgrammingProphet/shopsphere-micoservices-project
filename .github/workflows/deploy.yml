@@ -1,4 +1,4 @@
-name: ShopSphere Smart CI/CD 🚀
+name: ShopSphere CI/CD
 
 on:
   push:
@@ -89,10 +89,10 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
             echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
-            echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
+            echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
             echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
-            echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_PASSWORD }}" >> .env
-            echo "USER_SERVICE_URL=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+            echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+            echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
             echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
 
             echo "Pulling latest images..."
@@ -134,12 +134,12 @@ jobs:
 
       # 9️⃣ Rollback ❌
       # - name: Rollback on Failure
-      #   if: failure()
+      #   if : failure()
       #   uses: appleboy/ssh-action@v0.1.10
       #   with:
-      #     host: ${{ secrets.VM_HOST }}
-      #     username: ${{ secrets.VM_USER }}
-      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     host: {{ secrets.VM_HOST }}
+      #     username: {{ secrets.VM_USER }}
+      #     key: {{ secrets.VM_SSH_KEY }}
       #     script: |
       #       cd ~/shopsphere-microservices-project
       #       echo "Rollback triggered..."
