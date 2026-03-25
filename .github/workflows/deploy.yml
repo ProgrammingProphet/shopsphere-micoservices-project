@@ -124,9 +124,9 @@ jobs:
       - name: Health Check
         run: |
           sleep 25
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/users/actuator/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/products/actuator/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/orders/actuator/health
 
         # for i in {1..5}; do
         # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
