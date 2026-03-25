@@ -80,6 +80,8 @@ jobs:
 
             cd ~/DevOps/shopsphere-micoservices-project
 
+            git pull origin main
+
             echo "Creating .env file on server..."
             > .env
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
