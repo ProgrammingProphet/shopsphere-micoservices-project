@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2️⃣ Detect Changes 🔥
+      # 2️⃣ Detect Changes
       - name: Detect Changes
         id: changes
         uses: dorny/paths-filter@v2
@@ -69,7 +69,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
 
-      # 7️⃣ Deploy to Azure VM 🚀
+      # 7️⃣ Deploy to Azure VM
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -80,7 +80,7 @@ jobs:
 
             cd ~/DevOps/shopsphere-micoservices-project
 
-            git pull origin main
+            # git pull origin main
 
             echo "Creating .env file on server..."
             > .env
@@ -95,11 +95,10 @@ jobs:
             echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
             echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
 
-            docker-compose down
+            docker-compose down -v
             echo "Pulling latest images..."
-            docker-compose pull 
-
-            docker-compose up -d
+            # docker-compose pull 
+            docker-compose up -d --build
             echo "Restarting services..."
 
             if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
@@ -120,13 +119,45 @@ jobs:
 
             docker-compose up -d --no-deps nginx-gateway
 
-      # 8️⃣ Health Check 🔥
+      # 8️⃣ Health Check
       - name: Health Check
         run: |
-          sleep 25
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/users/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/products/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/orders/actuator/health
+          BASE_URL="http://shopsphere.centralindia.cloudapp.azure.com"
+
+          services=(
+            "/users/actuator/health"
+            "/products/actuator/health"
+            "/orders/actuator/health"
+          )
+
+          max_retries=10
+          sleep_time=10
+
+          for service in "${services[@]}"; do
+            echo "Checking $service"
+
+            success=false
+
+            for ((i=1; i<=max_retries; i++)); do
+              echo "Attempt $i for $service..."
+
+              if curl -fs "$BASE_URL$service"; then
+                echo "$service is UP"
+                success=true
+                break
+              else
+                echo "Failed... retrying in $sleep_time sec"
+                sleep $sleep_time
+              fi
+            done
+
+            if [ "$success" = false ]; then
+              echo "$service FAILED after $max_retries attempts"
+              exit 1
+            fi
+          done
+
+          echo "All services are healthy!"
 
         # for i in {1..5}; do
         # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
@@ -134,7 +165,7 @@ jobs:
         # done
         # curl -f http://localhost:8080/api/orders/actuator/health
 
-      # 9️⃣ Rollback ❌
+      # 9️⃣ Rollback
       # - name: Rollback on Failure
       #   if : failure()
       #   uses: appleboy/ssh-action@v0.1.10
