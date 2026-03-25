@@ -95,27 +95,28 @@ jobs:
             echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
             echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
 
-            docker-compose down -v
+            docker-compose down
             echo "Pulling latest images..."
-            # docker-compose pull 
-            docker-compose up -d --build
+            docker-compose pull 
+
+            docker-compose up -d
             echo "Restarting services..."
 
-            if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
-              docker-compose up -d --no-deps user-service
-            fi
+            # if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
+            #   docker-compose up -d --no-deps user-service
+            # fi
 
-            if [ "${{ steps.changes.outputs.product }}" == "true" ]; then
-              docker-compose up -d --no-deps product-service
-            fi
+            # if [ "${{ steps.changes.outputs.product }}" == "true" ]; then
+            #   docker-compose up -d --no-deps product-service
+            # fi
 
-            if [ "${{ steps.changes.outputs.order }}" == "true" ]; then
-              docker-compose up -d --no-deps order-service
-            fi
+            # if [ "${{ steps.changes.outputs.order }}" == "true" ]; then
+            #   docker-compose up -d --no-deps order-service
+            # fi
 
-            if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
-              docker-compose up -d --no-deps frontend
-            fi
+            # if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
+            #   docker-compose up -d --no-deps frontend
+            # fi
 
             docker-compose up -d --no-deps nginx-gateway
 
