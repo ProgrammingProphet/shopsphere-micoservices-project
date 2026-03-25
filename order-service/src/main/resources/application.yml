@@ -1,18 +1,18 @@
 spring:
   application:
     name: order-service
-  datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      initialization-fail-timeout: 60000
-      maximum-pool-size: 10
-      minimum-idle: 2
-      idle-timeout: 30000
-      connection-timeout: 20000
-      connection-test-query: "SELECT 1"
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    # datasource:
+    #   type: com.zaxxer.hikari.HikariDataSource
+    #   hikari:
+    #     initialization-fail-timeout: 60000
+    #     maximum-pool-size: 10
+    #     minimum-idle: 2
+    #     idle-timeout: 30000
+    #     connection-timeout: 20000
+    #     connection-test-query: "SELECT 1"
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://shopsphere-db:5432/shopsphere}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   jpa:
     properties:
       hibernate:
@@ -25,5 +25,14 @@ server:
 
 app:
   services:
-    user-service: ${USER_SERVICE_URL}
-    product-service: ${PRODUCT_SERVICE_URL}
+    user-service: ${USER_SERVICE_URL:http://user-service:8080}
+    product-service: ${PRODUCT_SERVICE_URL:http://product-service:8080}
+
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         include: health
+#   endpoint:
+#     health:
+#       show-details: always

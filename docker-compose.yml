@@ -30,8 +30,9 @@ services:
 
   user-service:
     # build: ./user-service
-    container_name: user-service
     image: programmingprobhet/shopsphere-user:latest
+    container_name: user-service
+
     # deploy:
     #   resources:
     #     limits:
@@ -48,18 +49,18 @@ services:
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:8080/actuator/health || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres
+    #healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -68,8 +69,8 @@ services:
 
   product-service:
     # build: ./product-service
-    container_name: product-service
     image: programmingprobhet/shopsphere-product:latest
+    container_name: product-service
     # deploy:
     #   resources:
     #     limits:
@@ -86,19 +87,18 @@ services:
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:8080/actuator/health || exit 1",
-        ]
-
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres
+    # healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -107,8 +107,8 @@ services:
 
   order-service:
     # build: ./order-service
-    container_name: order-service
     image: programmingprobhet/shopsphere-order:latest
+    container_name: order-service
     # deploy:
     #   resources:
     #     limits:
@@ -125,22 +125,20 @@ services:
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-      product-service:
-        condition: service_healthy
-    healthcheck:
-      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:8080/actuator/health || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres
+      - user-service
+      - product-service
+    # healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -175,18 +173,15 @@ services:
 
   frontend:
     # build: ./frontend
-    container_name: shopsphere-frontend
     image: programmingprobhet/shopsphere-frontend:latest
+    container_name: shopsphere-frontend
 
     mem_reservation: 128m
 
     depends_on:
-      user-service:
-        condition: service_healthy
-      product-service:
-        condition: service_healthy
-      order-service:
-        condition: service_healthy
+      - user-service
+      - product-service
+      - order-service
     networks:
       - shopsphere-network
     restart: unless-stopped
@@ -197,14 +192,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      frontend:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-      product-service:
-        condition: service_healthy
-      order-service:
-        condition: service_healthy
+      - frontend
     networks:
       - shopsphere-network
     volumes:

@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:14-alpine
     container_name: shopsphere-db
-    command: postgres -c shared_buffers=64MB -c work_mem=16MB -c max_connections=100
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=50
     # deploy:                      # Swarm mode
     #   resources:
     #     limits:
@@ -44,17 +44,22 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres
+    #healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -77,17 +82,22 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres
+    # healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -110,17 +120,24 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
+      - postgres
       - user-service
       - product-service
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # healthcheck:
+    # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    # test:
+    #   [
+    #     "CMD-SHELL",
+    #     "wget -qO- http://localhost:8080/actuator/health || exit 1",
+    #   ]
+    # interval: 30s
+    # timeout: 10s
+    # retries: 5
+    # start_period: 60s
     restart: unless-stopped
     networks:
       - shopsphere-network
@@ -175,9 +192,6 @@ services:
       - "80:80"
     depends_on:
       - frontend
-      - user-service
-      - product-service
-      - order-service
     networks:
       - shopsphere-network
     volumes:
