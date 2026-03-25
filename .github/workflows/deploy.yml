@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  smart-deploy:
+  shopsphere-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -150,6 +150,6 @@ jobs:
       # docker-compose up -d --no-deps --build
 
       # 🔟 Success
-      - name: Deployment Success ✅
+      - name: Deployment Success
         if: success()
         run: echo "Deployment successful - Version v1.0.${{ github.run_number }}"
