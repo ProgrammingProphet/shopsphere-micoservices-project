@@ -31,6 +31,7 @@ services:
   user-service:
     build: ./user-service
     container_name: user-service
+    # image: programmingprobhet/shopsphere-user:latest
     # deploy:
     #   resources:
     #     limits:
@@ -63,6 +64,7 @@ services:
   product-service:
     build: ./product-service
     container_name: product-service
+    # image: programmingprobhet/shopsphere-product:latest
     # deploy:
     #   resources:
     #     limits:
@@ -71,8 +73,7 @@ services:
     #       memory: 200m
     mem_limit: 512m
     mem_reservation: 256m
-    # ports:
-    #   - "8082:8080"
+
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
@@ -96,6 +97,7 @@ services:
   order-service:
     build: ./order-service
     container_name: order-service
+    # image: programmingprobhet/shopsphere-order:latest
     # deploy:
     #   resources:
     #     limits:
@@ -104,8 +106,7 @@ services:
     #       memory: 200m
     mem_limit: 512m
     mem_reservation: 256m
-    # ports:
-    #   - "8083:8080"
+
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
@@ -138,12 +139,11 @@ services:
     mem_limit: 512m
     mem_reservation: 256m
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@shopsphere.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_CONFIG_SERVER_MODE: "False"
       GUNICORN_WORKERS: 1
-    # ports:
-    #   - "5050:80"
+
     depends_on:
       - postgres
     networks:
@@ -156,16 +156,10 @@ services:
   frontend:
     build: ./frontend
     container_name: shopsphere-frontend
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 50m
-    #     reservations:
-    #       memory: 25m
-    mem_limit: 256m
+    # image: programmingprobhet/shopsphere-frontend:latest
+
     mem_reservation: 128m
-    # ports:
-    #   - "80:80"
+
     depends_on:
       - user-service
       - product-service
@@ -175,7 +169,7 @@ services:
     restart: unless-stopped
 
   nginx-gateway:
-    image: nginx:latest
+    image: nginx:1.25-alpine
     container_name: shopsphere-gateway
     ports:
       - "80:80"
@@ -197,32 +191,3 @@ networks:
 volumes:
   postgres_data:
   pgadmin_data:
-#  prometheus_data:
-#  grafana_data:
-
-#  prometheus:
-#    image: prom/prometheus
-#    container_name: prometheus
-#    ports:
-#      - "9090:9090"
-#    volumes:
-#      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-#      - prometheus_data:/prometheus
-#    networks:
-#      - shopsphere-network
-#
-#  grafana:
-#    image: grafana/grafana
-#    container_name: grafana
-#    ports:
-#      - "3000:3000"
-#    environment:
-#      - GF_SECURITY_ADMIN_PASSWORD=admin
-#    volumes:
-#      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-#      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
-#      - grafana_data:/var/lib/grafana
-#    depends_on:
-#      - prometheus
-#    networks:
-#      - shopsphere-network

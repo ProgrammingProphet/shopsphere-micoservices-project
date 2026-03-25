@@ -95,9 +95,11 @@ jobs:
             echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
             echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
 
+            docker-compose down
             echo "Pulling latest images..."
             docker-compose pull 
 
+            docker-compose up -d
             echo "Restarting services..."
 
             if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
@@ -122,9 +124,9 @@ jobs:
       - name: Health Check
         run: |
           sleep 25
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/actuator/health
-          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/users/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/products/health
+          curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/health
 
         # for i in {1..5}; do
         # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break

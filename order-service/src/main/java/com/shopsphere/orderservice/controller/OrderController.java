@@ -16,7 +16,7 @@ import java.util.Map;
 public class OrderController {
     private final OrderService orderService;
 
-    @GetMapping("/actuator/health")
+    @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "UP", "service", "order-service"));
     }
