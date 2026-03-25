@@ -90,9 +90,9 @@ jobs:
             echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
             echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
             echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
-            echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_EMAIL }}" >> .env
+            echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
             echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_PASSWORD }}" >> .env
-            echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
+            echo "USER_SERVICE_URL=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
             echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
 
             echo "Pulling latest images..."
