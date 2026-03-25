@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:14-alpine
     container_name: shopsphere-db
-    command: postgres -c shared_buffers=64MB -c work_mem=16MB -c max_connections=100
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=50
     # deploy:                      # Swarm mode
     #   resources:
     #     limits:
@@ -44,14 +44,19 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -77,14 +82,20 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health || exit 1",
+        ]
+
       interval: 30s
       timeout: 10s
       retries: 3
@@ -110,14 +121,23 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms128m -Xmx256m -XX:+UseContainerSupport"
     env_file:
       - .env
     depends_on:
-      - user-service
-      - product-service
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      # test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -161,9 +181,12 @@ services:
     mem_reservation: 128m
 
     depends_on:
-      - user-service
-      - product-service
-      - order-service
+      user-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
     networks:
       - shopsphere-network
     restart: unless-stopped
@@ -174,10 +197,14 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - frontend
-      - user-service
-      - product-service
-      - order-service
+      frontend:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
     networks:
       - shopsphere-network
     volumes:
