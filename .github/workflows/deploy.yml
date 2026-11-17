@@ -1,187 +1,63 @@
-name: ShopSphere CI/CD
+
+name: ShopSphere CI Pipeline
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  shopsphere-deploy:
+  build-and-test:
+    name: Build ${{ matrix.service }}
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - user-service
+          - product-service
+          - order-service
+          - payment-service
+          - inventory-service
+          - notification-service
+
     steps:
-      # 1️⃣ Checkout
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # Step 1: Download source code
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      # 2️⃣ Detect Changes
-      - name: Detect Changes
-        id: changes
-        uses: dorny/paths-filter@v2
+      # Step 2: Install Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          filters: |
-            user:
-              - 'user-service/**'
-            product:
-              - 'product-service/**'
-            order:
-              - 'order-service/**'
-            frontend:
-              - 'frontend/**'
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: ${{ matrix.service }}/pom.xml
 
-      # 3️⃣ Docker Login
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      # 4️⃣ Build + Push (User)
-      - name: Build & Push User Service
-        if: steps.changes.outputs.user == 'true'
+      # Step 3: Check Java and Maven versions
+      - name: Check Java and Maven
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest ./user-service
-          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-user:v1.0.${{ github.run_number }}
+          java -version
+          mvn -version
 
-      # 5️⃣ Build + Push (Product)
-      - name: Build & Push Product Service
-        if: steps.changes.outputs.product == 'true'
+      # Step 4: Build and run tests
+      - name: Build and test application
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest ./product-service
-          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:v1.0.${{ github.run_number }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-product:v1.0.${{ github.run_number }}
+          mvn -B -ntp -f ${{ matrix.service }}/pom.xml clean verify
 
-      # 6️⃣ Build + Push (Order)
-      - name: Build & Push Order Service
-        if: steps.changes.outputs.order == 'true'
+      # Step 5: Build Docker image
+      - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest ./order-service
-          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest  ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
-
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-order:v1.0.${{ github.run_number }}
-
-      - name: Build & Push Frontend
-        if: steps.changes.outputs.frontend == 'true'
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest ./frontend
-          docker tag ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/shopsphere-frontend:v1.0.${{ github.run_number }}
-
-      # 7️⃣ Deploy to Azure VM
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-
-            cd ~/DevOps/shopsphere-micoservices-project
-
-            # git pull origin main
-
-            echo "Creating .env file on server..."
-            > .env
-            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
-            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-            echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
-            echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
-            echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
-            echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
-            echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
-            echo "USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}" >> .env
-            echo "PRODUCT_SERVICE_URL=${{ secrets.PRODUCT_SERVICE_URL }}" >> .env
-
-            docker-compose down
-            echo "Pulling latest images..."
-            docker-compose pull 
-
-            docker-compose up -d
-            echo "Restarting services..."
-
-            # if [ "${{ steps.changes.outputs.user }}" == "true" ]; then
-            #   docker-compose up -d --no-deps user-service
-            # fi
-
-            # if [ "${{ steps.changes.outputs.product }}" == "true" ]; then
-            #   docker-compose up -d --no-deps product-service
-            # fi
-
-            # if [ "${{ steps.changes.outputs.order }}" == "true" ]; then
-            #   docker-compose up -d --no-deps order-service
-            # fi
-
-            # if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
-            #   docker-compose up -d --no-deps frontend
-            # fi
-
-            docker-compose up -d --no-deps nginx-gateway
-
-      # 8️⃣ Health Check
-      - name: Health Check
-        run: |
-          BASE_URL="http://shopsphere.centralindia.cloudapp.azure.com"
-
-          services=(
-            "/users/actuator/health"
-            "/products/actuator/health"
-            "/orders/actuator/health"
-          )
-
-          max_retries=10
-          sleep_time=10
-
-          for service in "${services[@]}"; do
-            echo "Checking $service"
-
-            success=false
-
-            for ((i=1; i<=max_retries; i++)); do
-              echo "Attempt $i for $service..."
-
-              if curl -fs "$BASE_URL$service"; then
-                echo "$service is UP"
-                success=true
-                break
-              else
-                echo "Failed... retrying in $sleep_time sec"
-                sleep $sleep_time
-              fi
-            done
-
-            if [ "$success" = false ]; then
-              echo "$service FAILED after $max_retries attempts"
-              exit 1
-            fi
-          done
-
-          echo "All services are healthy!"
-
-        # for i in {1..5}; do
-        # curl -f http://shopsphere.centralindia.cloudapp.azure.com/api/orders/actuator/health && break
-        # sleep 5
-        # done
-        # curl -f http://localhost:8080/api/orders/actuator/health
-
-      # 9️⃣ Rollback
-      # - name: Rollback on Failure
-      #   if : failure()
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: {{ secrets.VM_HOST }}
-      #     username: {{ secrets.VM_USER }}
-      #     key: {{ secrets.VM_SSH_KEY }}
-      #     script: |
-      #       cd ~/shopsphere-microservices-project
-      #       echo "Rollback triggered..."
-      #       docker-compose down
-      #       docker-compose up -d
-      # docker-compose up -d --no-deps --build
-
-      # 🔟 Success
-      - name: Deployment Success
-        if: success()
-        run: echo "Deployment successful - Version v1.0.${{ github.run_number }}"
+          docker build \
+            -t shopsphere/${{ matrix.service }}:${{ github.sha }} \
+            -f ${{ matrix.service }}/Dockerfile \
+            ${{ matrix.service }}
